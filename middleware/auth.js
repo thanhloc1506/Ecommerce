@@ -1,16 +1,12 @@
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = require("../config");
 const userService = require("../services/users");
+const { parseCookies } = require("../services/token");
 
 const requireUser = (req, res, next) => {
-  const authHeader = req.header("token") || req.header("Authorization") || "";
-  // console.log("ok");
-  // console.log(req.header("token"));
-  const token =
-    authHeader &&
-    (authHeader.includes(" ") ? authHeader.split(" ")[1] : authHeader);
-  // const token = authHeader;
-  // console.log(token);
+  const listCookies = parseCookies(req);
+  const token = listCookies.token;
+
   if (!token) {
     return res
       .status(401)
@@ -20,7 +16,7 @@ const requireUser = (req, res, next) => {
   try {
     const decode = jwt.verify(token, JWT_SECRET);
     // console.log({ decode: decode });
-    userService.findById(decode.user._id).then((user) => {
+    userService.findById(decode._id).then((user) => {
       req.user = user;
       next();
     });
